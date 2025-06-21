@@ -1,0 +1,25 @@
+# Compiled Java class files
+*.class
+
+# Log files
+*.log
+
+# Build artifacts
+target/
+.mvn/
+build/
+
+# IDE files
+.idea/
+*.iml
+
+# Node modules
+node_modules/
+/merchant-dashboard/build/
+
+# Environment variables
+.env
+.env*.local
+
+# OS generated files
+.DS_Store
