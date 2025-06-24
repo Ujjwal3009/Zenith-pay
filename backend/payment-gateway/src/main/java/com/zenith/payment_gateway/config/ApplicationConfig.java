@@ -1,5 +1,6 @@
 package com.zenith.payment_gateway.config;
 
+import com.zenith.payment_gateway.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,26 +8,26 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 
-    @Configuration
+@Configuration
     @RequiredArgsConstructor
     public class ApplicationConfig {
-
+    private final UserRepository userRepository;
         @Bean
         public UserDetailsService userDetailsService() {
-            UserDetails user = User.builder()
-                    .username("user@example.com")
-                    .password(passwordEncoder().encode("password"))
-                    .roles("USER")
-                    .build();
-            return new InMemoryUserDetailsManager(user);
+            return email -> userRepository.findByEmail(email)
+                    .map(user -> org.springframework.security.core.userdetails.User
+                            .withUsername(user.getEmail())
+                            .password(user.getPassword())
+                            .roles(user.getRole().name().replace("ROLE_", ""))
+                            .build()
+                    )
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         }
 
         @Bean

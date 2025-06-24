@@ -1,9 +1,12 @@
 package com.zenith.payment_gateway.controller;
 
-import com.zenith.payment_gateway.dto.LoginRequest;
-import com.zenith.payment_gateway.dto.LoginResponse;
+import com.zenith.payment_gateway.dto.*;
+import com.zenith.payment_gateway.service.AuthService;
 import com.zenith.payment_gateway.service.JwtService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,18 +23,21 @@ public class AuthController {
    private final  AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
+    private final AuthService authService;
 
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request){
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-        final String jwt = jwtService.generateToken(userDetails);
-
-        LoginResponse response= new LoginResponse();
-        response.setToken(jwt);
-        return response;
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Login successful", response));
     }
+
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest request) {
+        SignupResponse response = authService.signup(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, "Signup successful", response));
+    }
+
 }
